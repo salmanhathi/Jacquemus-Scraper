@@ -1,0 +1,2897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Jacquemus UAE Scraper</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+:root{
+  --bg:#f6f5f2;
+  --card:#fff;
+  --ink:#1b1b1b;
+  --mute:#6b6b6b;
+  --line:#e2e0da;
+  --acc:#1b1b1b;
+  --ok:#1a7f45;
+  --bad:#b3261e;
+  --warn:#9a6700;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif;
+}
+
+.wrap{
+  max-width:1050px;
+  margin:0 auto;
+  padding:24px 16px 60px;
+}
+
+h1{
+  font-size:22px;
+  margin:0 0 4px;
+  letter-spacing:.5px;
+}
+
+.sub{
+  color:var(--mute);
+  margin-bottom:18px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+label{
+  display:block;
+  font-weight:600;
+  margin:0 0 6px;
+}
+
+input[type=text],
+input[type=number],
+input[type=file],
+textarea{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  font:inherit;
+  background:#fff;
+}
+
+textarea{
+  min-height:90px;
+  font-family:ui-monospace,Consolas,monospace;
+}
+
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.row>div{
+  flex:1;
+  min-width:180px;
+}
+
+.hint{
+  color:var(--mute);
+  font-size:12px;
+  margin-top:4px;
+}
+
+button{
+  background:var(--acc);
+  color:#fff;
+  border:0;
+  border-radius:8px;
+  padding:10px 18px;
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+.note{
+  background:#fff8e6;
+  border:1px solid #f0dca0;
+  color:#5c4400;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:13px;
+}
+
+.success{
+  background:#edf8f1;
+  border:1px solid #b7dfc5;
+  color:#155b32;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:13px;
+}
+
+#bar{
+  height:8px;
+  background:var(--line);
+  border-radius:6px;
+  overflow:hidden;
+  margin:10px 0;
+}
+
+#bar i{
+  display:block;
+  height:100%;
+  width:0;
+  background:var(--ok);
+  transition:width .2s;
+}
+
+#log{
+  background:#111;
+  color:#ddd;
+  border-radius:10px;
+  padding:12px;
+  height:320px;
+  overflow:auto;
+  font:12px/1.5 ui-monospace,Consolas,monospace;
+  white-space:pre-wrap;
+}
+
+.ok{
+  color:#6ee7a0;
+}
+
+.bad{
+  color:#ff8a80;
+}
+
+.warn{
+  color:#ffd166;
+}
+
+table{
+  border-collapse:collapse;
+  width:100%;
+  font-size:12.5px;
+}
+
+th,
+td{
+  border-bottom:1px solid var(--line);
+  padding:6px 8px;
+  text-align:left;
+  vertical-align:top;
+}
+
+th{
+  color:var(--mute);
+  font-weight:600;
+}
+
+.chk{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:400;
+}
+
+.chk input{
+  width:auto;
+}
+
+code{
+  background:#f1f1ef;
+  padding:1px 4px;
+  border-radius:4px;
+}
+
+#vpnPreview{
+  max-height:150px;
+  overflow:auto;
+  margin-top:10px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px;
+  font:12px ui-monospace,Consolas,monospace;
+  background:#fafafa;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<h1>JACQUEMUS UAE SCRAPER</h1>
+
+<div class="sub">
+VPN in → Excel + matching images out
+</div>
+
+<div class="note" style="margin-bottom:14px">
+
+<b>Important:</b>
+This browser scraper needs a CORS proxy to access
+<code>jacquemus.ae</code>.
+
+For reliable use from GitHub Pages, use your own
+Cloudflare Worker proxy rather than a public CORS proxy.
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- INPUT -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<label>
+1. Import Excel / CSV
+</label>
+
+<div class="hint">
+Your Excel must contain a column named exactly
+<b>VPN</b>.
+</div>
+
+<input
+  type="file"
+  id="file"
+  accept=".xlsx,.xls,.csv"
+  style="margin-top:8px"
+>
+
+<div
+  class="hint"
+  id="fileInfo"
+></div>
+
+<div
+  id="vpnPreview"
+></div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- SETTINGS -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<label>
+2. Settings
+</label>
+
+<div class="row">
+
+<div>
+
+<label
+  for="proxy"
+  style="font-weight:500"
+>
+Proxy URL
+</label>
+
+<input
+  type="text"
+  id="proxy"
+  value="https://corsproxy.io/?url={url}"
+>
+
+<div class="hint">
+The proxy must support GET requests and return the
+Jacquemus response with CORS enabled.
+</div>
+
+</div>
+
+
+<div style="max-width:140px">
+
+<label
+  for="workers"
+  style="font-weight:500"
+>
+Parallel
+</label>
+
+<input
+  type="number"
+  id="workers"
+  value="2"
+  min="1"
+  max="6"
+>
+
+</div>
+
+
+<div style="max-width:140px">
+
+<label
+  for="delay"
+  style="font-weight:500"
+>
+Delay (sec)
+</label>
+
+<input
+  type="number"
+  id="delay"
+  value="1.5"
+  min="0"
+  step="0.5"
+>
+
+</div>
+
+</div>
+
+
+<label
+  class="chk"
+  style="margin-top:12px"
+>
+
+<input
+  type="checkbox"
+  id="useFolder"
+  checked
+>
+
+Save files directly into a folder I choose.
+
+</label>
+
+
+<label
+  class="chk"
+>
+
+<input
+  type="checkbox"
+  id="debugHtml"
+  checked
+>
+
+Save HTML for failed products.
+
+</label>
+
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- START -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<button id="start">
+Start scraping
+</button>
+
+<div id="bar">
+<i></i>
+</div>
+
+<div
+  id="status"
+  class="hint"
+>
+Idle.
+</div>
+
+<div
+  id="log"
+  style="margin-top:10px"
+></div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- RESULTS -->
+<!-- ===================================================== -->
+
+<div
+  class="card"
+  id="resCard"
+  style="display:none"
+>
+
+<label>
+Results
+</label>
+
+<div style="overflow:auto">
+
+<table id="res"></table>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ==========================================================
+   CONFIG
+========================================================== */
+
+const BASE =
+  "https://www.jacquemus.ae";
+
+const COLUMNS = [
+  "VPN",
+  "URL",
+  "Name 1",
+  "Name 2",
+  "Short Description",
+  "Color",
+  "Long Description",
+  "Image Count",
+  "First Image Name"
+];
+
+const ERR_SHEET =
+  "Errors-Incomplete";
+
+const $ =
+  id => document.getElementById(id);
+
+let fileVpns = [];
+
+
+/* ==========================================================
+   LOGGING
+========================================================== */
+
+function log(
+  msg,
+  cls
+){
+
+  const d =
+    document.createElement(
+      "div"
+    );
+
+  if(cls){
+    d.className =
+      cls;
+  }
+
+  d.textContent =
+    msg;
+
+  $("log")
+    .appendChild(d);
+
+  $("log").scrollTop =
+    $("log").scrollHeight;
+}
+
+
+/* ==========================================================
+   SLEEP
+========================================================== */
+
+function sleep(ms){
+
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
+
+}
+
+
+/* ==========================================================
+   READ EXCEL
+========================================================== */
+
+$("file").addEventListener(
+  "change",
+  async function(e){
+
+    const file =
+      e.target.files[0];
+
+    if(!file)
+      return;
+
+    $("fileInfo").textContent =
+      "Reading " +
+      file.name +
+      "...";
+
+    try{
+
+      const buffer =
+        await file.arrayBuffer();
+
+      const wb =
+        XLSX.read(
+          buffer,
+          {
+            type:"array"
+          }
+        );
+
+      const firstSheet =
+        wb.Sheets[
+          wb.SheetNames[0]
+        ];
+
+      const rows =
+        XLSX.utils.sheet_to_json(
+          firstSheet,
+          {
+            defval:"",
+            raw:false
+          }
+        );
+
+      if(!rows.length){
+
+        fileVpns = [];
+
+        $("fileInfo").textContent =
+          "The Excel sheet is empty.";
+
+        return;
+      }
+
+
+      /* Find VPN column */
+
+      const headers =
+        Object.keys(
+          rows[0]
+        );
+
+      const vpnHeader =
+        headers.find(
+          h =>
+            String(h)
+              .trim()
+              .toLowerCase()
+            ===
+            "vpn"
+        );
+
+
+      if(!vpnHeader){
+
+        fileVpns = [];
+
+        $("fileInfo").textContent =
+          "ERROR: No column named VPN found. " +
+          "Columns found: " +
+          headers.join(", ");
+
+        return;
+      }
+
+
+      /* Read VPN values */
+
+      fileVpns =
+        rows
+          .map(
+            row =>
+              String(
+                row[vpnHeader] || ""
+              ).trim()
+          )
+          .filter(Boolean);
+
+
+      /* Remove duplicates */
+
+      fileVpns =
+        [
+          ...new Set(
+            fileVpns
+          )
+        ];
+
+
+      $("fileInfo").textContent =
+        fileVpns.length +
+        " VPN(s) loaded from " +
+        file.name +
+        " using column '" +
+        vpnHeader +
+        "'.";
+
+
+      showVpnPreview();
+
+    }
+    catch(err){
+
+      fileVpns = [];
+
+      $("fileInfo").textContent =
+        "Could not read Excel: " +
+        err.message;
+
+    }
+
+  }
+);
+
+
+/* ==========================================================
+   VPN PREVIEW
+========================================================== */
+
+function showVpnPreview(){
+
+  const box =
+    $("vpnPreview");
+
+  if(!fileVpns.length){
+
+    box.style.display =
+      "none";
+
+    return;
+  }
+
+
+  const display =
+    fileVpns
+      .slice(0,100)
+      .join("\n");
+
+
+  box.textContent =
+    display +
+    (
+      fileVpns.length > 100
+        ? "\n... and " +
+          (fileVpns.length - 100) +
+          " more"
+        : ""
+    );
+
+
+  box.style.display =
+    "block";
+}
+
+
+/* ==========================================================
+   PROXY
+========================================================== */
+
+function proxied(
+  url
+){
+
+  const template =
+    $("proxy")
+      .value
+      .trim();
+
+
+  if(!template){
+
+    return url;
+
+  }
+
+
+  if(
+    !template.includes(
+      "{url}"
+    )
+  ){
+
+    throw new Error(
+      "Proxy URL must contain {url}"
+    );
+
+  }
+
+
+  return template.replace(
+    "{url}",
+    encodeURIComponent(
+      url
+    )
+  );
+
+}
+
+
+/* ==========================================================
+   HTTP GET
+========================================================== */
+
+async function get(
+  url,
+  options={}
+){
+
+  const {
+    blob=false,
+    retries=2
+  } = options;
+
+
+  let lastError =
+    null;
+
+
+  for(
+    let attempt=0;
+    attempt<=retries;
+    attempt++
+  ){
+
+    try{
+
+      const target =
+        proxied(
+          url
+        );
+
+
+      const response =
+        await fetch(
+          target,
+          {
+            method:"GET",
+            cache:"no-store"
+          }
+        );
+
+
+      if(
+        response.status === 403 ||
+        response.status === 429 ||
+        response.status === 503
+      ){
+
+        lastError =
+          "HTTP " +
+          response.status;
+
+        await sleep(
+          2000 *
+          (attempt + 1)
+        );
+
+        continue;
+      }
+
+
+      const data =
+        blob
+          ? await response.blob()
+          : await response.text();
+
+
+      return {
+        status:
+          response.status,
+
+        data,
+
+        err:
+          null
+      };
+
+    }
+    catch(error){
+
+      lastError =
+        error.message ||
+        String(error);
+
+
+      await sleep(
+        1500 *
+        (attempt + 1)
+      );
+
+    }
+
+  }
+
+
+  return {
+    status:0,
+    data:null,
+    err:lastError
+  };
+
+}
+
+
+/* ==========================================================
+   HTML HELPERS
+========================================================== */
+
+function parse(
+  html
+){
+
+  return new DOMParser()
+    .parseFromString(
+      html,
+      "text/html"
+    );
+
+}
+
+
+function txt(
+  el
+){
+
+  if(!el)
+    return "";
+
+  return (
+    el.textContent || ""
+  )
+    .replace(
+      /\s+/g,
+      " "
+    )
+    .trim();
+
+}
+
+
+/* ==========================================================
+   LONG DESCRIPTION
+========================================================== */
+
+function descHtml(
+  el
+){
+
+  if(!el)
+    return "";
+
+
+  /*
+   * IMPORTANT:
+   *
+   * Do NOT convert <br> to text.
+   *
+   * We keep the actual HTML.
+   */
+
+  let html =
+    el.innerHTML;
+
+
+  /*
+   * Normalize BR variations.
+   */
+
+  html =
+    html.replace(
+      /<br\s*\/?>/gi,
+      "<br>"
+    );
+
+
+  /*
+   * Remove whitespace around BR.
+   */
+
+  html =
+    html.replace(
+      /\s*<br>\s*/g,
+      "<br>"
+    );
+
+
+  /*
+   * Normalize spaces.
+   */
+
+  html =
+    html.replace(
+      /[ \t]+/g,
+      " "
+    );
+
+
+  return html.trim();
+
+}
+
+
+/* ==========================================================
+   PRODUCT DETECTION
+========================================================== */
+
+function isProduct(
+  html
+){
+
+  if(!html)
+    return false;
+
+
+  const lower =
+    html.toLowerCase();
+
+
+  const signals = [
+
+    "product-main-content",
+
+    "product-detail",
+
+    "product-detail-container",
+
+    "product-id",
+
+    "productid",
+
+    "productdata",
+
+    "js-long-description",
+
+    "js-short-description",
+
+    "js-selected-swatch-name"
+
+  ];
+
+
+  return signals.some(
+    signal =>
+      lower.includes(
+        signal
+      )
+  );
+
+}
+
+
+/* ==========================================================
+   FIND PRODUCT
+========================================================== */
+
+async function findProductPage(
+  vpn
+){
+
+  const attempts = [];
+
+
+  /*
+   * DIRECT PRODUCT URL
+   */
+
+  const directUrls = [
+
+    `${BASE}/en/p/${encodeURIComponent(vpn)}.html`,
+
+    `${BASE}/on/demandware.store/Sites-Jacquemus_AE-Site/en_AE/Product-Show?pid=${encodeURIComponent(vpn)}`
+
+  ];
+
+
+  for(
+    const url of directUrls
+  ){
+
+    const response =
+      await get(
+        url
+      );
+
+
+    if(
+      response.status === 200 &&
+      response.data
+    ){
+
+      log(
+        `    ${vpn}: HTTP 200`
+      );
+
+
+      if(
+        isProduct(
+          response.data
+        )
+      ){
+
+        return {
+          url,
+          html:
+            response.data,
+          err:null
+        };
+
+      }
+
+
+      /*
+       * Sometimes the product
+       * HTML doesn't contain the
+       * expected wrapper.
+       *
+       * Look specifically for
+       * the VPN.
+       */
+
+      if(
+        response.data
+          .toLowerCase()
+          .includes(
+            vpn.toLowerCase()
+          )
+      ){
+
+        return {
+          url,
+          html:
+            response.data,
+          err:null
+        };
+
+      }
+
+
+      attempts.push(
+        url +
+        " -> HTTP 200 but product not detected"
+      );
+
+    }
+    else{
+
+      attempts.push(
+        url +
+        " -> " +
+        (
+          response.err ||
+          (
+            "HTTP " +
+            response.status
+          )
+        )
+      );
+
+    }
+
+  }
+
+
+  /*
+   * SEARCH FALLBACK
+   */
+
+  const searchUrl =
+    `${BASE}/en/search?q=` +
+    encodeURIComponent(
+      vpn
+    );
+
+
+  const search =
+    await get(
+      searchUrl
+    );
+
+
+  if(
+    search.status !== 200
+  ){
+
+    return {
+      url:"",
+      html:"",
+      err:
+        "Search failed: " +
+        (
+          search.err ||
+          search.status
+        ) +
+        " | " +
+        attempts.join(
+          " | "
+        )
+    };
+
+  }
+
+
+  log(
+    `    ${vpn}: search HTTP 200`
+  );
+
+
+  const searchDoc =
+    parse(
+      search.data
+    );
+
+
+  /*
+   * Look through ALL links.
+   *
+   * Don't require the URL itself
+   * to contain the VPN because
+   * Jacquemus may use a product
+   * slug.
+   */
+
+  for(
+    const link
+    of searchDoc.querySelectorAll(
+      "a[href]"
+    )
+  ){
+
+    const href =
+      link.getAttribute(
+        "href"
+      ) ||
+      "";
+
+
+    const text =
+      txt(
+        link
+      );
+
+
+    /*
+     * Candidate if either the
+     * link or its text contains
+     * the VPN.
+     */
+
+    if(
+      !href
+        .toLowerCase()
+        .includes(
+          vpn.toLowerCase()
+        )
+      &&
+      !text
+        .toLowerCase()
+        .includes(
+          vpn.toLowerCase()
+        )
+    ){
+
+      continue;
+
+    }
+
+
+    let productUrl;
+
+    try{
+
+      productUrl =
+        new URL(
+          href,
+          BASE
+        ).href;
+
+    }
+    catch{
+
+      continue;
+
+    }
+
+
+    if(
+      !productUrl.startsWith(
+        BASE
+      )
+    ){
+
+      continue;
+
+    }
+
+
+    const product =
+      await get(
+        productUrl
+      );
+
+
+    if(
+      product.status === 200 &&
+      product.data
+    ){
+
+      if(
+        isProduct(
+          product.data
+        )
+        ||
+        product.data
+          .toLowerCase()
+          .includes(
+            vpn.toLowerCase()
+          )
+      ){
+
+        return {
+          url:
+            productUrl,
+
+          html:
+            product.data,
+
+          err:null
+        };
+
+      }
+
+    }
+
+  }
+
+
+  return {
+    url:"",
+    html:"",
+    err:
+      "Product not found. " +
+      attempts.join(
+        " | "
+      )
+  };
+
+}
+
+
+/* ==========================================================
+   FIRST TEXT
+========================================================== */
+
+function firstText(
+  root,
+  selectors,
+  notEqual=""
+){
+
+  for(
+    const selector
+    of selectors
+  ){
+
+    const elements =
+      root.querySelectorAll(
+        selector
+      );
+
+
+    for(
+      const element
+      of elements
+    ){
+
+      const value =
+        txt(
+          element
+        );
+
+
+      if(
+        value &&
+        value !== notEqual
+      ){
+
+        return value;
+
+      }
+
+    }
+
+  }
+
+
+  return "";
+
+}
+
+
+/* ==========================================================
+   PRODUCT DETAILS
+========================================================== */
+
+function parseDetails(
+  doc
+){
+
+  const main =
+
+    doc.querySelector(
+      ".product-main-content"
+    )
+
+    ||
+
+    doc.querySelector(
+      ".product-detail"
+    )
+
+    ||
+
+    doc.querySelector(
+      ".product-detail-container"
+    )
+
+    ||
+
+    doc.body;
+
+
+  const name1 =
+    firstText(
+      main,
+      [
+        ".js-name",
+        ".product-name",
+        "h1.product-name",
+        "h1",
+        '[itemprop="name"]'
+      ]
+    );
+
+
+  const name2 =
+    firstText(
+      main,
+      [
+        ".js-product-subtitle",
+        ".product-subtitle",
+        ".product-description-title",
+        "p.font-weight-normal"
+      ],
+      name1
+    );
+
+
+  const short =
+    firstText(
+      main,
+      [
+        ".js-short-description",
+        ".short-description",
+        '[itemprop="description"]'
+      ]
+    );
+
+
+  const color =
+    firstText(
+      main,
+      [
+        ".js-selected-swatch-name",
+        ".selected-swatch-name",
+        ".product-color",
+        ".color-name",
+        '[data-attribute="color"]'
+      ]
+    );
+
+
+  /*
+   * Long description.
+   */
+
+  let long = "";
+
+
+  const longSelectors = [
+
+    ".js-product-details-content .js-long-description",
+
+    ".js-long-description",
+
+    ".long-description",
+
+    ".product-details-description",
+
+    ".product-description"
+
+  ];
+
+
+  for(
+    const selector
+    of longSelectors
+  ){
+
+    const element =
+      doc.querySelector(
+        selector
+      );
+
+
+    if(
+      element
+    ){
+
+      long =
+        descHtml(
+          element
+        );
+
+
+      if(
+        long
+      ){
+
+        break;
+
+      }
+
+    }
+
+  }
+
+
+  return {
+    name1,
+    name2,
+    short,
+    color,
+    long
+  };
+
+}
+
+
+/* ==========================================================
+   IMAGE MATCHING
+========================================================== */
+
+function imageCandidates(
+  doc,
+  vpn
+){
+
+  const found = [];
+
+  const seen =
+    new Set();
+
+
+  const target =
+    vpn.toUpperCase();
+
+
+  /*
+   * IMPORTANT:
+   *
+   * We inspect every image but only
+   * keep images whose actual filename
+   * contains the VPN.
+   *
+   * Example:
+   *
+   * VPN:
+   * CDM00292-BK00185-990
+   *
+   * Match:
+   * 24HCDM00292-BK00185-990_04.jpg
+   *
+   * No match:
+   * 25HPAM00541-AD00049-380_01.jpg
+   */
+
+
+  for(
+    const img
+    of doc.querySelectorAll(
+      "img"
+    )
+  ){
+
+    const candidates = [];
+
+
+    /*
+     * High quality image attributes.
+     */
+
+    const attributes = [
+
+      "data-zoom-src",
+      "data-zoom",
+      "data-large",
+      "data-original",
+      "data-src"
+
+    ];
+
+
+    for(
+      const attribute
+      of attributes
+    ){
+
+      const value =
+        img.getAttribute(
+          attribute
+        );
+
+
+      if(value){
+
+        candidates.push(
+          value
+        );
+
+      }
+
+    }
+
+
+    /*
+     * srcset.
+     */
+
+    const srcset =
+      img.getAttribute(
+        "srcset"
+      ) ||
+      "";
+
+
+    if(srcset){
+
+      const values =
+        srcset
+          .split(",")
+          .map(
+            item =>
+              item
+                .trim()
+                .split(/\s+/)[0]
+          )
+          .filter(Boolean)
+          .reverse();
+
+
+      candidates.push(
+        ...values
+      );
+
+    }
+
+
+    /*
+     * Normal src.
+     */
+
+    const src =
+      img.getAttribute(
+        "src"
+      );
+
+
+    if(src){
+
+      candidates.push(
+        src
+      );
+
+    }
+
+
+    /*
+     * Find a candidate whose
+     * filename contains VPN.
+     */
+
+    let match =
+      null;
+
+
+    for(
+      const raw
+      of candidates
+    ){
+
+      let absolute;
+
+
+      try{
+
+        absolute =
+          new URL(
+            raw,
+            BASE
+          ).href;
+
+      }
+      catch{
+
+        continue;
+
+      }
+
+
+      let pathname;
+
+
+      try{
+
+        pathname =
+          decodeURIComponent(
+            new URL(
+              absolute
+            ).pathname
+          );
+
+      }
+      catch{
+
+        continue;
+
+      }
+
+
+      const filename =
+        pathname
+          .split("/")
+          .pop();
+
+
+      if(
+        filename &&
+        filename
+          .toUpperCase()
+          .includes(
+            target
+          )
+      ){
+
+        match = {
+          url:
+            absolute,
+
+          filename:
+            filename
+        };
+
+        break;
+
+      }
+
+    }
+
+
+    if(!match)
+      continue;
+
+
+    const unique =
+      match.filename
+        .toLowerCase();
+
+
+    if(
+      seen.has(
+        unique
+      )
+    ){
+
+      continue;
+
+    }
+
+
+    seen.add(
+      unique
+    );
+
+
+    found.push(
+      match
+    );
+
+  }
+
+
+  /*
+   * Sort:
+   *
+   * _01
+   * _02
+   * _03
+   * _04
+   */
+
+  found.sort(
+    (a,b) => {
+
+      const ma =
+        a.filename.match(
+          /_(\d+)(?:\.[^.]+)$/i
+        );
+
+      const mb =
+        b.filename.match(
+          /_(\d+)(?:\.[^.]+)$/i
+        );
+
+
+      const na =
+        ma
+          ? Number(
+              ma[1]
+            )
+          : 999999;
+
+
+      const nb =
+        mb
+          ? Number(
+              mb[1]
+            )
+          : 999999;
+
+
+      if(
+        na !== nb
+      ){
+
+        return na - nb;
+
+      }
+
+
+      return a.filename.localeCompare(
+        b.filename
+      );
+
+    }
+  );
+
+
+  return found;
+
+}
+
+
+/* ==========================================================
+   SAVER
+========================================================== */
+
+async function makeSaver(){
+
+  /*
+   * Chrome / Edge folder picker.
+   */
+
+  if(
+    $("useFolder").checked &&
+    "showDirectoryPicker"
+      in window
+  ){
+
+    const directory =
+      await window.showDirectoryPicker(
+        {
+          mode:
+            "readwrite"
+        }
+      );
+
+
+    return {
+
+      label:
+        "selected folder",
+
+      async save(
+        name,
+        blob
+      ){
+
+        const file =
+          await directory.getFileHandle(
+            name,
+            {
+              create:true
+            }
+          );
+
+
+        const writer =
+          await file.createWritable();
+
+
+        await writer.write(
+          blob
+        );
+
+
+        await writer.close();
+
+      },
+
+      async finish(){}
+
+    };
+
+  }
+
+
+  /*
+   * ZIP fallback.
+   */
+
+  const zip =
+    new JSZip();
+
+
+  return {
+
+    label:
+      "ZIP download",
+
+    async save(
+      name,
+      blob
+    ){
+
+      zip.file(
+        name,
+        blob
+      );
+
+    },
+
+
+    async finish(){
+
+      const blob =
+        await zip.generateAsync(
+          {
+            type:
+              "blob"
+          }
+        );
+
+
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+
+      const a =
+        document.createElement(
+          "a"
+        );
+
+
+      a.href =
+        url;
+
+
+      a.download =
+        "jacquemus_output_" +
+        new Date()
+          .toISOString()
+          .replace(
+            /[-:T]/g,
+            ""
+          )
+          .slice(
+            0,
+            14
+          ) +
+        ".zip";
+
+
+      document.body.appendChild(
+        a
+      );
+
+
+      a.click();
+
+
+      a.remove();
+
+
+      setTimeout(
+        () =>
+          URL.revokeObjectURL(
+            url
+          ),
+        10000
+      );
+
+    }
+
+  };
+
+}
+
+
+/* ==========================================================
+   SCRAPE ONE PRODUCT
+========================================================== */
+
+async function scrape(
+  vpn,
+  saver,
+  delay
+){
+
+  const row =
+    Object.fromEntries(
+      COLUMNS.map(
+        column =>
+          [
+            column,
+            ""
+          ]
+      )
+    );
+
+
+  row.VPN =
+    vpn;
+
+
+  log(
+    `  ${vpn}: loading product...`
+  );
+
+
+  const page =
+    await findProductPage(
+      vpn
+    );
+
+
+  if(
+    page.err
+  ){
+
+    return {
+      row,
+      issues:[
+        [
+          "Page",
+          page.err
+        ]
+      ]
+    };
+
+  }
+
+
+  row.URL =
+    page.url;
+
+
+  const doc =
+    parse(
+      page.html
+    );
+
+
+  const details =
+    parseDetails(
+      doc
+    );
+
+
+  row["Name 1"] =
+    details.name1;
+
+  row["Name 2"] =
+    details.name2;
+
+  row["Short Description"] =
+    details.short;
+
+  row["Color"] =
+    details.color;
+
+  row["Long Description"] =
+    details.long;
+
+
+  /*
+   * Images.
+   */
+
+  const images =
+    imageCandidates(
+      doc,
+      vpn
+    );
+
+
+  log(
+    `    ${vpn}: found ${images.length} matching image(s)`
+  );
+
+
+  const saved = [];
+
+
+  for(
+    const image
+    of images
+  ){
+
+    const response =
+      await get(
+        image.url,
+        {
+          blob:true,
+          retries:2
+        }
+      );
+
+
+    if(
+      response.status === 200 &&
+      response.data instanceof Blob &&
+      response.data.size > 2000
+    ){
+
+      /*
+       * Preserve the ORIGINAL
+       * Jacquemus filename.
+       */
+
+      const filename =
+        image.filename
+          .replace(
+            /[<>:"/\\|?*]/g,
+            "_"
+          );
+
+
+      await saver.save(
+        filename,
+        response.data
+      );
+
+
+      saved.push(
+        filename
+      );
+
+
+      log(
+        `      Saved: ${filename}`,
+        "ok"
+      );
+
+    }
+    else{
+
+      log(
+        `      Image failed: ${image.filename}`,
+        "warn"
+      );
+
+    }
+
+
+    await sleep(
+      Math.max(
+        delay * 500,
+        100
+      )
+    );
+
+  }
+
+
+  row["Image Count"] =
+    saved.length;
+
+
+  row["First Image Name"] =
+    saved[0] ||
+    "";
+
+
+  /*
+   * Missing fields.
+   */
+
+  const checks = [
+
+    [
+      "Name 1",
+      details.name1
+    ],
+
+    [
+      "Name 2",
+      details.name2
+    ],
+
+    [
+      "Short Description",
+      details.short
+    ],
+
+    [
+      "Color",
+      details.color
+    ],
+
+    [
+      "Long Description",
+      details.long
+    ],
+
+    [
+      "Images",
+      saved.length
+    ]
+
+  ];
+
+
+  const issues =
+    checks
+      .filter(
+        item =>
+          !item[1]
+      )
+      .map(
+        item =>
+          [
+            item[0],
+            "Not found / empty"
+          ]
+      );
+
+
+  /*
+   * Save HTML when fields
+   * are missing.
+   */
+
+  if(
+    issues.length &&
+    $("debugHtml").checked
+  ){
+
+    const filename =
+      vpn
+        .replace(
+          /[^A-Za-z0-9_.-]/g,
+          "_"
+        ) +
+      "_debug.html";
+
+
+    await saver.save(
+      filename,
+      new Blob(
+        [
+          page.html
+        ],
+        {
+          type:
+            "text/html"
+        }
+      )
+    );
+
+
+    issues.push(
+      [
+        "Debug",
+        "HTML saved: " +
+        filename
+      ]
+    );
+
+  }
+
+
+  await sleep(
+    delay * 1000
+  );
+
+
+  return {
+    row,
+    issues
+  };
+
+}
+
+
+/* ==========================================================
+   BUILD EXCEL
+========================================================== */
+
+function buildExcel(
+  rows,
+  errors
+){
+
+  /*
+   * Excel has a 32,767 character
+   * limit per cell.
+   */
+
+  function excelSafe(
+    value
+  ){
+
+    if(
+      typeof value ===
+      "string" &&
+      value.length > 32000
+    ){
+
+      return value.slice(
+        0,
+        32000
+      );
+
+    }
+
+
+    return value;
+
+  }
+
+
+  const productData = [
+
+    COLUMNS,
+
+    ...rows.map(
+      row =>
+        COLUMNS.map(
+          column =>
+            excelSafe(
+              row[column]
+            )
+        )
+    )
+
+  ];
+
+
+  const errorHeaders = [
+    "VPN",
+    "Field",
+    "Reason",
+    "URL"
+  ];
+
+
+  const errorData = [
+
+    errorHeaders,
+
+    ...errors.map(
+      error =>
+        errorHeaders.map(
+          header =>
+            excelSafe(
+              error[header]
+            )
+        )
+    )
+
+  ];
+
+
+  const productSheet =
+    XLSX.utils.aoa_to_sheet(
+      productData
+    );
+
+
+  const errorSheet =
+    XLSX.utils.aoa_to_sheet(
+      errorData
+    );
+
+
+  /*
+   * Column widths.
+   */
+
+  productSheet["!cols"] =
+    COLUMNS.map(
+      (column,index) => {
+
+        let max =
+          column.length;
+
+
+        for(
+          const row
+          of productData.slice(
+            0,
+            51
+          )
+        ){
+
+          max =
+            Math.max(
+              max,
+              String(
+                row[index] || ""
+              ).length
+            );
+
+        }
+
+
+        return {
+          wch:
+            Math.min(
+              max + 2,
+              60
+            )
+        };
+
+      }
+    );
+
+
+  const workbook =
+    XLSX.utils.book_new();
+
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    productSheet,
+    "Products"
+  );
+
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    errorSheet,
+    ERR_SHEET
+  );
+
+
+  return new Blob(
+    [
+      XLSX.write(
+        workbook,
+        {
+          bookType:
+            "xlsx",
+
+          type:
+            "array"
+        }
+      )
+    ],
+    {
+      type:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }
+  );
+
+}
+
+
+/* ==========================================================
+   START SCRAPING
+========================================================== */
+
+$("start").addEventListener(
+  "click",
+  async function(){
+
+    /*
+     * ONLY Excel VPNs.
+     */
+
+    const vpns =
+      [
+        ...new Set(
+          fileVpns
+        )
+      ];
+
+
+    if(
+      !vpns.length
+    ){
+
+      alert(
+        "Please select an Excel file containing a VPN column."
+      );
+
+      return;
+
+    }
+
+
+    let saver;
+
+
+    try{
+
+      saver =
+        await makeSaver();
+
+    }
+    catch(error){
+
+      alert(
+        "Folder selection was cancelled."
+      );
+
+      return;
+
+    }
+
+
+    $("start").disabled =
+      true;
+
+
+    $("log").innerHTML =
+      "";
+
+
+    $("bar")
+      .firstElementChild
+      .style
+      .width =
+      "0%";
+
+
+    $("resCard")
+      .style
+      .display =
+      "none";
+
+
+    const workers =
+      Math.max(
+        1,
+        Number(
+          $("workers").value
+        ) || 1
+      );
+
+
+    const delay =
+      Math.max(
+        0,
+        Number(
+          $("delay").value
+        ) || 0
+      );
+
+
+    log(
+      `Scraping ${vpns.length} VPN(s)`
+    );
+
+
+    log(
+      `Proxy: ${
+        $("proxy").value.trim()
+        || "DIRECT"
+      }`
+    );
+
+
+    log(
+      `Parallel workers: ${workers}`
+    );
+
+
+    log(
+      `Delay: ${delay}s`
+    );
+
+
+    log(
+      ""
+    );
+
+
+    const results =
+      new Array(
+        vpns.length
+      );
+
+
+    let nextIndex =
+      0;
+
+
+    let completed =
+      0;
+
+
+    /*
+     * Worker.
+     */
+
+    async function worker(){
+
+      while(
+        true
+      ){
+
+        const index =
+          nextIndex++;
+
+
+        if(
+          index >=
+          vpns.length
+        ){
+
+          break;
+
+        }
+
+
+        const vpn =
+          vpns[index];
+
+
+        let result;
+
+
+        try{
+
+          result =
+            await scrape(
+              vpn,
+              saver,
+              delay
+            );
+
+        }
+        catch(error){
+
+          const row =
+            Object.fromEntries(
+              COLUMNS.map(
+                column =>
+                  [
+                    column,
+                    ""
+                  ]
+              )
+            );
+
+
+          row.VPN =
+            vpn;
+
+
+          result = {
+
+            row,
+
+            issues:[
+              [
+                "Exception",
+                error.message ||
+                String(error)
+              ]
+            ]
+
+          };
+
+        }
+
+
+        results[index] =
+          result;
+
+
+        completed++;
+
+
+        const issueText =
+          result.issues.length
+            ? "ISSUES: " +
+              result.issues
+                .filter(
+                  issue =>
+                    issue[0] !==
+                    "Debug"
+                )
+                .map(
+                  issue =>
+                    issue[0]
+                )
+                .join(
+                  ", "
+                )
+            : "OK";
+
+
+        log(
+          `  ${vpn}: ${issueText}`,
+          result.issues.length
+            ? "warn"
+            : "ok"
+        );
+
+
+        $("bar")
+          .firstElementChild
+          .style
+          .width =
+          (
+            completed /
+            vpns.length *
+            100
+          ) +
+          "%";
+
+
+        $("status")
+          .textContent =
+          `${completed} / ${vpns.length} done`;
+
+      }
+
+    }
+
+
+    /*
+     * Start workers.
+     */
+
+    await Promise.all(
+
+      Array.from(
+        {
+          length:
+            Math.min(
+              workers,
+              vpns.length
+            )
+        },
+        () =>
+          worker()
+      )
+
+    );
+
+
+    /*
+     * Prepare results.
+     */
+
+    const rows =
+      results.map(
+        result =>
+          result.row
+      );
+
+
+    const errors = [];
+
+
+    results.forEach(
+      result => {
+
+        result.issues.forEach(
+          issue => {
+
+            errors.push(
+              {
+                VPN:
+                  result.row.VPN,
+
+                Field:
+                  issue[0],
+
+                Reason:
+                  issue[1],
+
+                URL:
+                  result.row.URL
+              }
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+    /*
+     * Save Excel.
+     */
+
+    const excel =
+      buildExcel(
+        rows,
+        errors
+      );
+
+
+    await saver.save(
+      "jacquemus_output.xlsx",
+      excel
+    );
+
+
+    await saver.finish();
+
+
+    /*
+     * Results table.
+     */
+
+    const table =
+      $("res");
+
+
+    table.innerHTML = `
+
+      <tr>
+
+        <th>VPN</th>
+
+        <th>Name 1</th>
+
+        <th>Color</th>
+
+        <th>Images</th>
+
+        <th>First Image</th>
+
+        <th>Issues</th>
+
+      </tr>
+
+    `;
+
+
+    results.forEach(
+      result => {
+
+        const tr =
+          table.insertRow();
+
+
+        const values = [
+
+          result.row.VPN,
+
+          result.row["Name 1"],
+
+          result.row.Color,
+
+          result.row["Image Count"],
+
+          result.row["First Image Name"],
+
+          result.issues
+            .filter(
+              issue =>
+                issue[0] !==
+                "Debug"
+            )
+            .map(
+              issue =>
+                issue[0]
+            )
+            .join(
+              ", "
+            )
+
+        ];
+
+
+        values.forEach(
+          value => {
+
+            const td =
+              tr.insertCell();
+
+
+            td.textContent =
+              value ??
+              "";
+
+          }
+        );
+
+      }
+    );
+
+
+    $("resCard")
+      .style
+      .display =
+      "block";
+
+
+    $("status")
+      .textContent =
+      `Completed ${vpns.length} VPN(s).`;
+
+
+    log(
+      "",
+    );
+
+
+    log(
+      `DONE: ${rows.length} product(s), ${errors.length} issue(s).`,
+      "ok"
+    );
+
+
+    $("start").disabled =
+      false;
+
+  }
+);
+
+</script>
+
+</body>
+</html>
